@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macchina del tempo: confronto tra giocatori del Milan | RedBlack Insights</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c8102e 0%, #000000 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .branding {
+            font-size: 0.9em;
+            margin-top: 15px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .player-input {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .player-input h3 {
+            color: #c8102e;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #c8102e;
+        }
+
+        .compare-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .compare-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(200, 16, 46, 0.4);
+        }
+
+        .compare-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #c8102e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .comparison-header {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .comparison-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .comparison-content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            line-height: 1.8;
+        }
+
+        .comparison-content h3 {
+            color: #c8102e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #c8102e;
+            padding-bottom: 10px;
+        }
+
+        .comparison-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .comparison-content p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .comparison-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .comparison-content li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .comparison-content strong {
+            color: #c8102e;
+        }
+
+        .error {
+            display: none;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .footer a {
+            color: #c8102e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚽ Macchina del tempo ⏰</h1>
+            <p>Confronto tra giocatori del Milan</p>
+            <div class="branding">Un progetto di RedBlack Insights</div>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <div class="player-input">
+                    <h3>Giocatore 1</h3>
+                    <label for="player1-name">Nome completo</label>
+                    <input type="text" id="player1-name" placeholder="Es: Paolo Maldini" required>
+                    
+                    <label for="player1-period">Periodo al Milan (opzionale)</label>
+                    <input type="text" id="player1-period" placeholder="Es: 1985-2009">
+                    
+                    <label for="player1-role">Ruolo (opzionale)</label>
+                    <select id="player1-role">
+                        <option value="">Seleziona ruolo</option>
+                        <option value="Portiere">Portiere</option>
+                        <option value="Difensore">Difensore</option>
+                        <option value="Centrocampista">Centrocampista</option>
+                        <option value="Attaccante">Attaccante</option>
+                    </select>
+                </div>
+
+                <div class="player-input">
+                    <h3>Giocatore 2</h3>
+                    <label for="player2-name">Nome completo</label>
+                    <input type="text" id="player2-name" placeholder="Es: Franco Baresi" required>
+                    
+                    <label for="player2-period">Periodo al Milan (opzionale)</label>
+                    <input type="text" id="player2-period" placeholder="Es: 1977-1997">
+                    
+                    <label for="player2-role">Ruolo (opzionale)</label>
+                    <select id="player2-role">
+                        <option value="">Seleziona ruolo</option>
+                        <option value="Portiere">Portiere</option>
+                        <option value="Difensore">Difensore</option>
+                        <option value="Centrocampista">Centrocampista</option>
+                        <option value="Attaccante">Attaccante</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="compare-btn" id="compare-btn">Avvia il confronto</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analizzando le carriere dei giocatori...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="results" id="results">
+                <div class="comparison-header">
+                    <h2 id="comparison-title"></h2>
+                </div>
+                <div class="comparison-content" id="comparison-content"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Tutti i diritti riservati © <a href="https://feliceraimondo.substack.com" target="_blank">RedBlack Insights</a></p>
+            <p>Questa Web App è di proprietà del suo autore, l'avvocato Felice Raimondo.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('compare-btn').addEventListener('click', async () => {
+            const player1Name = document.getElementById('player1-name').value.trim();
+            const player1Period = document.getElementById('player1-period').value.trim();
+            const player1Role = document.getElementById('player1-role').value;
+            
+            const player2Name = document.getElementById('player2-name').value.trim();
+            const player2Period = document.getElementById('player2-period').value.trim();
+            const player2Role = document.getElementById('player2-role').value;
+
+            // Validazione
+            if (!player1Name || !player2Name) {
+                showError('Per favore, inserisci i nomi di entrambi i giocatori.');
+                return;
+            }
+
+            // UI updates
+            document.getElementById('compare-btn').disabled = true;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+
+            try {
+                const response = await fetch('/.netlify/functions/compare-players', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        player1: {
+                            name: player1Name,
+                            period: player1Period,
+                            role: player1Role
+                        },
+                        player2: {
+                            name: player2Name,
+                            period: player2Period,
+                            role: player2Role
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Errore: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const comparisonText = data.comparison;
+
+                // Mostra i risultati
+                document.getElementById('comparison-title').textContent = `${player1Name} vs ${player2Name}`;
+                document.getElementById('comparison-content').innerHTML = comparisonText;
+                document.getElementById('results').classList.add('active');
+
+            } catch (error) {
+                console.error('Errore:', error);
+                showError('Si è verificato un errore durante l\'analisi. Riprova più tardi o contatta il supporto.');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('compare-btn').disabled = false;
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
+        }
+
+        // Nascondi errore quando l'utente inizia a digitare
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                document.getElementById('error').classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

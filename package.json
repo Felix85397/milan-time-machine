@@ -1,0 +1,8 @@
+{
+  "name": "milan-time-machine",
+  "version": "1.0.0",
+  "description": "Web App per confrontare giocatori del Milan",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
