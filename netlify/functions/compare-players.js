@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event, context) => {
   // Gestione CORS
   const headers = {
@@ -40,6 +38,16 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Verifica API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY non configurata');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'API key non configurata' })
+      };
+    }
+
     // Costruzione del prompt
     const prompt = `Sei un esperto di storia del calcio italiano e del Milan. Crea un confronto approfondito e professionale tra questi due giocatori del Milan:
 
@@ -61,7 +69,9 @@ Scrivi in italiano con stile professionale ma accessibile ai tifosi. Usa formatt
 
 Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezza su alcuni dati, indicalo chiaramente.`;
 
-    // Chiamata all'API di Anthropic
+    console.log('Chiamata API Anthropic in corso...');
+
+    // Chiamata all'API di Anthropic con fetch nativo
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -81,12 +91,21 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Errore API Anthropic:', errorData);
-      throw new Error(`Errore API: ${response.status}`);
+      console.error('Errore API Anthropic:', response.status, errorData);
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Errore chiamata API',
+          details: errorData
+        })
+      };
     }
 
     const data = await response.json();
     const comparison = data.content[0].text;
+
+    console.log('Confronto generato con successo');
 
     return {
       statusCode: 200,
@@ -95,7 +114,8 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
     };
 
   } catch (error) {
-    console.error('Errore nella funzione:', error);
+    console.error('Errore nella funzione:', error.message);
+    console.error('Stack:', error.stack);
     return {
       statusCode: 500,
       headers,
