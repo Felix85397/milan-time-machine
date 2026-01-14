@@ -48,80 +48,121 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Costruzione del prompt
-    const prompt = `Sei un esperto di storia del calcio italiano e del Milan. Crea un confronto approfondito e professionale tra questi due giocatori del Milan:
+    // Costruzione del prompt - versione più breve per ridurre token
+    const prompt = `Sei un esperto di storia del Milan. Confronta brevemente questi due giocatori:
 
-GIOCATORE 1: ${player1.name}${player1.period ? ` (Periodo: ${player1.period})` : ''}${player1.role ? ` (Ruolo: ${player1.role})` : ''}
+GIOCATORE 1: ${player1.name}${player1.period ? ` (${player1.period})` : ''}${player1.role ? ` - ${player1.role}` : ''}
 
-GIOCATORE 2: ${player2.name}${player2.period ? ` (Periodo: ${player2.period})` : ''}${player2.role ? ` (Ruolo: ${player2.role})` : ''}
+GIOCATORE 2: ${player2.name}${player2.period ? ` (${player2.period})` : ''}${player2.role ? ` - ${player2.role}` : ''}
 
-Il confronto deve includere:
-1. Breve introduzione sui due giocatori
-2. Statistiche e numeri principali (presenze, gol, assist se disponibili)
-3. Caratteristiche tecniche e stile di gioco
-4. Palmares con il Milan (titoli vinti)
-5. Momenti iconici e partite memorabili
-6. Impatto sulla storia del club
-7. Confronto diretto: punti di forza di ciascuno
-8. Conclusione equilibrata
+Crea un confronto di massimo 600 parole con:
+1. Introduzione breve (50 parole)
+2. Statistiche chiave 
+3. Stili di gioco
+4. Titoli principali
+5. Momenti memorabili
+6. Confronto diretto
+7. Conclusione
 
-Scrivi in italiano con stile professionale ma accessibile ai tifosi. Usa formattazione HTML con tag <h3> per i titoli delle sezioni, <p> per i paragrafi, <strong> per evidenziare elementi importanti, <ul> e <li> per elenchi puntati quando appropriato. Non usare markdown.
+Usa HTML: <h3> per titoli, <p> per paragrafi, <strong> per enfasi, <ul><li> per liste. Scrivi in italiano, stile professionale ma accessibile.`;
 
-Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezza su alcuni dati, indicalo chiaramente.`;
+    console.log('Inizio chiamata API Anthropic...');
+    console.log('Player 1:', player1.name);
+    console.log('Player 2:', player2.name);
 
-    console.log('Chiamata API Anthropic in corso...');
+    // Chiamata con timeout personalizzato
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 secondi
 
-    // Chiamata all'API di Anthropic con fetch nativo
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
-      })
-    });
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000, // Ridotto per velocità
+          messages: [{
+            role: 'user',
+            content: prompt
+          }]
+        }),
+        signal: controller.signal
+      });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Errore API Anthropic:', response.status, errorData);
+      clearTimeout(timeoutId);
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        
+        return {
+          statusCode: 502,
+          headers,
+          body: JSON.stringify({ 
+            error: 'Errore API Anthropic',
+            status: response.status,
+            details: errorText.substring(0, 200)
+          })
+        };
+      }
+
+      const data = await response.json();
+      console.log('API call successful');
+      
+      if (!data.content || !data.content[0] || !data.content[0].text) {
+        console.error('Invalid API response structure:', JSON.stringify(data));
+        return {
+          statusCode: 502,
+          headers,
+          body: JSON.stringify({ error: 'Risposta API non valida' })
+        };
+      }
+
+      const comparison = data.content[0].text;
+      console.log('Confronto generato, lunghezza:', comparison.length);
+
       return {
-        statusCode: response.status,
+        statusCode: 200,
         headers,
-        body: JSON.stringify({ 
-          error: 'Errore chiamata API',
-          details: errorData
-        })
+        body: JSON.stringify({ comparison })
       };
+
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError.name === 'AbortError') {
+        console.error('Request timeout dopo 25 secondi');
+        return {
+          statusCode: 504,
+          headers,
+          body: JSON.stringify({ 
+            error: 'Timeout della richiesta',
+            message: 'La chiamata API ha impiegato troppo tempo. Riprova.'
+          })
+        };
+      }
+      
+      throw fetchError;
     }
 
-    const data = await response.json();
-    const comparison = data.content[0].text;
-
-    console.log('Confronto generato con successo');
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ comparison })
-    };
-
   } catch (error) {
-    console.error('Errore nella funzione:', error.message);
+    console.error('Errore generale:', error.message);
+    console.error('Error name:', error.name);
     console.error('Stack:', error.stack);
+    
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: 'Errore interno del server',
-        message: error.message 
+        error: 'Errore interno',
+        message: error.message,
+        type: error.name
       })
     };
   }
