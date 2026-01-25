@@ -616,7 +616,7 @@
             if (!isContinuation) hideResults('presidents');
 
             try {
-                const response = await fetch('/.netlify/functions/presidential-dialogue', {
+                const response = await fetch('/api/presidential-dialogue', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -673,7 +673,7 @@
             hideResults('teams');
 
             try {
-                const response = await fetch('/.netlify/functions/team-battle', {
+                const response = await fetch('/api/team-battle', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
