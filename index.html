@@ -559,7 +559,7 @@
             hideResults('players');
 
             try {
-                const response = await fetch('/.netlify/functions/compare-players', {
+                const response = await fetch('/api/compare-players', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
