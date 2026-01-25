@@ -32,11 +32,18 @@ GIOCATORE 1: ${player1.name}${player1.period ? ` (Periodo: ${player1.period})` :
 
 GIOCATORE 2: ${player2.name}${player2.period ? ` (Periodo: ${player2.period})` : ''}${player2.role ? ` (Ruolo: ${player2.role})` : ''}
 
+REGOLE FONDAMENTALI PER L'ACCURATEZZA:
+- Consulta mentalmente fonti affidabili come Transfermarkt, Wikipedia e archivi ufficiali
+- Se non sei ASSOLUTAMENTE CERTO di una statistica, usa termini approssimativi: "circa", "oltre", "più di"
+- NON inventare mai numeri precisi: è meglio dire "dati non disponibili con certezza" che dare cifre sbagliate
+- Per il palmares, elenca SOLO i titoli di cui sei completamente sicuro
+- Dai priorità all'analisi qualitativa (stile di gioco, impatto) rispetto alle statistiche nude
+
 Il confronto deve includere:
 1. Breve introduzione sui due giocatori
-2. Statistiche e numeri principali (presenze, gol, assist se disponibili)
-3. Caratteristiche tecniche e stile di gioco
-4. Palmares con il Milan (titoli vinti)
+2. Statistiche principali (usa approssimazioni se necessario: "circa 500 presenze", "oltre 50 gol")
+3. Caratteristiche tecniche e stile di gioco (ENFASI PRINCIPALE)
+4. Palmares con il Milan (solo titoli certi)
 5. Momenti iconici e partite memorabili
 6. Impatto sulla storia del club
 7. Confronto diretto: punti di forza di ciascuno
@@ -44,7 +51,7 @@ Il confronto deve includere:
 
 Scrivi in italiano con stile professionale ma accessibile ai tifosi. Usa formattazione HTML con tag <h3> per i titoli delle sezioni, <p> per i paragrafi, <strong> per evidenziare elementi importanti, <ul> e <li> per elenchi puntati quando appropriato. Non usare markdown.
 
-Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezza su alcuni dati, indicalo chiaramente.`;
+Sii obiettivo, accurato e rispettoso di entrambi i giocatori. MASSIMA ATTENZIONE ALL'ACCURATEZZA: meglio approssimare che sbagliare.`;
 
     console.log('Chiamata API Anthropic in corso...');
 
@@ -72,18 +79,26 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error Response:', errorText);
-        return { statusCode: 502, headers, body: JSON.stringify({ error: 'Errore API Anthropic', status: response.status, details: errorText.substring(0, 200) }) };
+        return { statusCode: 502, headers, body: JSON.stringify({ error: 'Errore API Anthropic' }) };
       }
 
       const data = await response.json();
       
       if (!data.content || !data.content[0] || !data.content[0].text) {
-        console.error('Invalid API response structure:', JSON.stringify(data));
+        console.error('Invalid API response structure');
         return { statusCode: 502, headers, body: JSON.stringify({ error: 'Risposta API non valida' }) };
       }
 
-      const comparison = data.content[0].text;
-      console.log('Confronto generato, lunghezza:', comparison.length);
+      let comparison = data.content[0].text;
+      
+      // Aggiungi disclaimer automatico
+      const disclaimer = `<div style="margin-top: 30px; padding: 15px; background: #fff3cd; border-left: 4px solid #c8102e; border-radius: 8px;">
+<p style="margin: 0; font-size: 0.9em; color: #856404;"><strong>📊 Nota sulle statistiche:</strong> I dati numerici riportati sono approssimativi e potrebbero non essere completamente aggiornati. Per statistiche ufficiali precise, si consiglia di consultare fonti specializzate come Transfermarkt, Wikipedia o il sito ufficiale dell'AC Milan.</p>
+</div>`;
+      
+      comparison += disclaimer;
+      
+      console.log('Confronto generato con successo');
 
       return { statusCode: 200, headers, body: JSON.stringify({ comparison }) };
 
@@ -91,8 +106,8 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
       clearTimeout(timeoutId);
       
       if (fetchError.name === 'AbortError') {
-        console.error('Request timeout dopo 25 secondi');
-        return { statusCode: 504, headers, body: JSON.stringify({ error: 'Timeout della richiesta', message: 'La chiamata API ha impiegato troppo tempo. Riprova.' }) };
+        console.error('Request timeout dopo 45 secondi');
+        return { statusCode: 504, headers, body: JSON.stringify({ error: 'Timeout della richiesta' }) };
       }
       
       throw fetchError;
@@ -100,9 +115,6 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
 
   } catch (error) {
     console.error('Errore generale:', error.message);
-    console.error('Error name:', error.name);
-    console.error('Stack:', error.stack);
-    
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Errore interno', message: error.message, type: error.name }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Errore interno', message: error.message }) };
   }
 };
