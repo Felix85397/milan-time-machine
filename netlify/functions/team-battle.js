@@ -54,7 +54,7 @@ Scrivi in italiano con stile professionale ma accessibile. Sii obiettivo e rispe
     console.log('Analizzando scontro tra squadre...');
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 secondi
 
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -65,7 +65,7 @@ Scrivi in italiano con stile professionale ma accessibile. Sii obiettivo e rispe
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
+          model: 'claude-sonnet-4-5-20250929',
           max_tokens: 2500,
           messages: [{ role: 'user', content: prompt }]
         }),
