@@ -49,7 +49,7 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
     console.log('Chiamata API Anthropic in corso...');
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
 
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
