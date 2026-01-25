@@ -26,34 +26,33 @@ exports.handler = async (event, context) => {
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'API key non configurata' }) };
     }
 
-    const prompt = `Sei un esperto di storia del calcio e del Milan. Crea un confronto CONCISO (massimo 500 parole) tra:
+    const prompt = `Sei un esperto di storia del Milan. Confronta questi giocatori in modo CONCISO (400-500 parole):
 
-GIOCATORE 1: ${player1.name}${player1.period ? ` (${player1.period})` : ''}${player1.role ? ` - ${player1.role}` : ''}
+${player1.name}${player1.period ? ` (${player1.period})` : ''} vs ${player2.name}${player2.period ? ` (${player2.period})` : ''}
 
-GIOCATORE 2: ${player2.name}${player2.period ? ` (${player2.period})` : ''}${player2.role ? ` - ${player2.role}` : ''}
+REGOLE CRITICHE - ACCURATEZZA:
+- Consulta mentalmente Transfermarkt e Wikipedia prima di dare numeri
+- USA SEMPRE approssimazioni: "circa 580 presenze", "oltre 50 gol", "più di 100 assist"
+- MAI numeri precisi a meno che tu non sia sicuro al 100%
+- Per palmares: elenca SOLO titoli di cui sei assolutamente certo
+- Se un dato non è certo: scrivi "dato non disponibile con certezza"
 
-REGOLE FONDAMENTALI:
-- Massimo 500 parole totali
-- Per statistiche usa "circa", "oltre" se non sei sicuro al 100%
-- Focus su analisi qualitativa (stile, impatto) più che numeri
-- Solo palmares certo e verificabile
-
-Include queste sezioni:
-1. Introduzione (2-3 righe)
-2. Statistiche approssimative chiave
-3. Stile di gioco e caratteristiche (SEZIONE PRINCIPALE)
+Struttura (400-500 parole totali):
+1. Intro breve (2 righe)
+2. Statistiche approssimative (usa "circa", "oltre")
+3. Stile di gioco (PRINCIPALE - 40% del testo)
 4. Titoli vinti (solo certi)
-5. Impatto sul Milan
-6. Confronto diretto
-7. Conclusione breve
+5. Momenti memorabili
+6. Confronto punti di forza
+7. Conclusione (2-3 righe)
 
-Formattazione HTML: <h3> per titoli, <p> per testo, <strong> per enfasi, <ul><li> per liste brevi.
-Scrivi in italiano, stile professionale ma accessibile. Risposta RAPIDA e CONCISA.`;
+HTML: <h3> titoli, <p> testo, <strong> enfasi, <ul><li> liste brevi.
+Italiano professionale ma chiaro. VELOCE E CONCISO.`;
 
-    console.log('Chiamata API in corso...');
+    console.log('API call starting...');
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 24000); // 24 secondi (sotto il limite Netlify)
+    const timeoutId = setTimeout(() => controller.abort(), 23000); // 23 secondi di sicurezza
 
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -64,8 +63,8 @@ Scrivi in italiano, stile professionale ma accessibile. Risposta RAPIDA e CONCIS
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-5-20250929',
-          max_tokens: 2000,
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1800,
           messages: [{ role: 'user', content: prompt }]
         }),
         signal: controller.signal
@@ -81,15 +80,14 @@ Scrivi in italiano, stile professionale ma accessibile. Risposta RAPIDA e CONCIS
 
       const data = await response.json();
       
-      if (!data.content || !data.content[0] || !data.content[0].text) {
+      if (!data.content?.[0]?.text) {
         return { statusCode: 502, headers, body: JSON.stringify({ error: 'Risposta non valida' }) };
       }
 
       let comparison = data.content[0].text;
       
-      // Disclaimer automatico
       const disclaimer = `<div style="margin-top: 25px; padding: 12px; background: #fff3cd; border-left: 4px solid #c8102e; border-radius: 6px;">
-<p style="margin: 0; font-size: 0.85em; color: #856404;"><strong>📊 Nota:</strong> Le statistiche sono approssimative. Per dati ufficiali consulta Transfermarkt o fonti specializzate.</p>
+<p style="margin: 0; font-size: 0.85em; color: #856404;"><strong>📊 Nota:</strong> Le statistiche riportate sono approssimative. Per dati ufficiali precisi consulta <a href="https://www.transfermarkt.it" target="_blank" style="color: #c8102e;">Transfermarkt</a> o fonti specializzate.</p>
 </div>`;
       
       comparison += disclaimer;
@@ -98,17 +96,14 @@ Scrivi in italiano, stile professionale ma accessibile. Risposta RAPIDA e CONCIS
 
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
       if (fetchError.name === 'AbortError') {
-        console.error('Timeout dopo 24 secondi');
         return { statusCode: 504, headers, body: JSON.stringify({ error: 'Timeout' }) };
       }
-      
       throw fetchError;
     }
 
   } catch (error) {
-    console.error('Errore:', error.message);
+    console.error('Error:', error.message);
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Errore interno' }) };
   }
 };
