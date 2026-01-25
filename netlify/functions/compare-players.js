@@ -26,30 +26,34 @@ exports.handler = async (event, context) => {
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'API key non configurata' }) };
     }
 
-    const prompt = `Sei un esperto di storia del calcio italiano e del Milan. Crea un confronto approfondito e professionale tra questi due giocatori del Milan:
+    const prompt = `Sei un esperto di storia del calcio e del Milan. Crea un confronto CONCISO (massimo 500 parole) tra:
 
-GIOCATORE 1: ${player1.name}${player1.period ? ` (Periodo: ${player1.period})` : ''}${player1.role ? ` (Ruolo: ${player1.role})` : ''}
+GIOCATORE 1: ${player1.name}${player1.period ? ` (${player1.period})` : ''}${player1.role ? ` - ${player1.role}` : ''}
 
-GIOCATORE 2: ${player2.name}${player2.period ? ` (Periodo: ${player2.period})` : ''}${player2.role ? ` (Ruolo: ${player2.role})` : ''}
+GIOCATORE 2: ${player2.name}${player2.period ? ` (${player2.period})` : ''}${player2.role ? ` - ${player2.role}` : ''}
 
-Il confronto deve includere:
-1. Breve introduzione sui due giocatori
-2. Statistiche e numeri principali (presenze, gol, assist se disponibili)
-3. Caratteristiche tecniche e stile di gioco
-4. Palmares con il Milan (titoli vinti)
-5. Momenti iconici e partite memorabili
-6. Impatto sulla storia del club
-7. Confronto diretto: punti di forza di ciascuno
-8. Conclusione equilibrata
+REGOLE FONDAMENTALI:
+- Massimo 500 parole totali
+- Per statistiche usa "circa", "oltre" se non sei sicuro al 100%
+- Focus su analisi qualitativa (stile, impatto) più che numeri
+- Solo palmares certo e verificabile
 
-Scrivi in italiano con stile professionale ma accessibile ai tifosi. Usa formattazione HTML con tag <h3> per i titoli delle sezioni, <p> per i paragrafi, <strong> per evidenziare elementi importanti, <ul> e <li> per elenchi puntati quando appropriato. Non usare markdown.
+Include queste sezioni:
+1. Introduzione (2-3 righe)
+2. Statistiche approssimative chiave
+3. Stile di gioco e caratteristiche (SEZIONE PRINCIPALE)
+4. Titoli vinti (solo certi)
+5. Impatto sul Milan
+6. Confronto diretto
+7. Conclusione breve
 
-Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezza su alcuni dati, indicalo chiaramente.`;
+Formattazione HTML: <h3> per titoli, <p> per testo, <strong> per enfasi, <ul><li> per liste brevi.
+Scrivi in italiano, stile professionale ma accessibile. Risposta RAPIDA e CONCISA.`;
 
-    console.log('Chiamata API Anthropic in corso...');
+    console.log('Chiamata API in corso...');
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 secondi
+    const timeoutId = setTimeout(() => controller.abort(), 24000); // 24 secondi (sotto il limite Netlify)
 
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -61,7 +65,7 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5-20250929',
-          max_tokens: 4000,
+          max_tokens: 2000,
           messages: [{ role: 'user', content: prompt }]
         }),
         signal: controller.signal
@@ -71,19 +75,24 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        return { statusCode: 502, headers, body: JSON.stringify({ error: 'Errore API Anthropic', status: response.status }) };
+        console.error('API Error:', errorText);
+        return { statusCode: 502, headers, body: JSON.stringify({ error: 'Errore API' }) };
       }
 
       const data = await response.json();
       
       if (!data.content || !data.content[0] || !data.content[0].text) {
-        console.error('Invalid API response structure');
-        return { statusCode: 502, headers, body: JSON.stringify({ error: 'Risposta API non valida' }) };
+        return { statusCode: 502, headers, body: JSON.stringify({ error: 'Risposta non valida' }) };
       }
 
-      const comparison = data.content[0].text;
-      console.log('Confronto generato con successo');
+      let comparison = data.content[0].text;
+      
+      // Disclaimer automatico
+      const disclaimer = `<div style="margin-top: 25px; padding: 12px; background: #fff3cd; border-left: 4px solid #c8102e; border-radius: 6px;">
+<p style="margin: 0; font-size: 0.85em; color: #856404;"><strong>📊 Nota:</strong> Le statistiche sono approssimative. Per dati ufficiali consulta Transfermarkt o fonti specializzate.</p>
+</div>`;
+      
+      comparison += disclaimer;
 
       return { statusCode: 200, headers, body: JSON.stringify({ comparison }) };
 
@@ -91,15 +100,15 @@ Sii obiettivo, accurato e rispettoso di entrambi i giocatori. Se non hai certezz
       clearTimeout(timeoutId);
       
       if (fetchError.name === 'AbortError') {
-        console.error('Request timeout dopo 45 secondi');
-        return { statusCode: 504, headers, body: JSON.stringify({ error: 'Timeout della richiesta' }) };
+        console.error('Timeout dopo 24 secondi');
+        return { statusCode: 504, headers, body: JSON.stringify({ error: 'Timeout' }) };
       }
       
       throw fetchError;
     }
 
   } catch (error) {
-    console.error('Errore generale:', error.message);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Errore interno', message: error.message }) };
+    console.error('Errore:', error.message);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Errore interno' }) };
   }
 };
