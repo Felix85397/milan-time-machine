@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macchina del tempo: Milan Edition | RedBlack Insights</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c8102e 0%, #000000 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .branding {
+            font-size: 0.9em;
+            margin-top: 15px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: #f8f9fa;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tab.active {
+            background: white;
+            color: #c8102e;
+            border-bottom: 3px solid #c8102e;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Common Styles */
+        .input-section {
+            display: grid;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .two-columns {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .one-column {
+            grid-template-columns: 1fr;
+        }
+
+        .input-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-box h3 {
+            color: #c8102e;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #c8102e;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(200, 16, 46, 0.4);
+        }
+
+        .action-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .secondary-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #c8102e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .results-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .results-content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            line-height: 1.8;
+        }
+
+        .results-content h3 {
+            color: #c8102e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #c8102e;
+            padding-bottom: 10px;
+        }
+
+        .results-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .results-content p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .results-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .results-content li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .results-content strong {
+            color: #c8102e;
+        }
+
+        /* Dialogue specific styles */
+        .dialogue-turn {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #c8102e;
+        }
+
+        .president-name {
+            font-weight: bold;
+            color: #c8102e;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .error {
+            display: none;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .footer a {
+            color: #c8102e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .input-section.two-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div id="sign-in-container" style="display: flex; justify-content: center; align-items: center; min-height: 85vh; width: 100%; box-sizing: border-box;"></div>
+    <div id="app-content" style="display: none;">
+
+    <div class="container">
+        <div class="header">
+            <h1>⚽ Macchina del tempo ⏰</h1>
+            <p>Esplora la storia del Milan</p>
+            <div class="branding">Un progetto di RedBlack Insights</div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('players')">🔴⚫ Confronto giocatori</button>
+            <button class="tab" onclick="switchTab('presidents')">💼 Dialogo tra presidenti</button>
+            <button class="tab" onclick="switchTab('teams')">🏆 Milan Legend vs Chi vuoi tu</button>
+        </div>
+
+        <!-- TAB 1: Player Comparison -->
+        <div id="tab-players" class="tab-content active">
+            <div class="input-section two-columns">
+                <div class="input-box">
+                    <h3>Giocatore 1</h3>
+                    <label for="player1-name">Nome completo</label>
+                    <input type="text" id="player1-name" placeholder="Es: Paolo Maldini">
+                    
+                    <label for="player1-period">Periodo al Milan (opzionale)</label>
+                    <input type="text" id="player1-period" placeholder="Es: 1985-2009">
+                    
+                    <label for="player1-role">Ruolo (opzionale)</label>
+                    <select id="player1-role">
+                        <option value="">Seleziona ruolo</option>
+                        <option value="Portiere">Portiere</option>
+                        <option value="Difensore">Difensore</option>
+                        <option value="Centrocampista">Centrocampista</option>
+                        <option value="Attaccante">Attaccante</option>
+                    </select>
+                </div>
+
+                <div class="input-box">
+                    <h3>Giocatore 2</h3>
+                    <label for="player2-name">Nome completo</label>
+                    <input type="text" id="player2-name" placeholder="Es: Franco Baresi">
+                    
+                    <label for="player2-period">Periodo al Milan (opzionale)</label>
+                    <input type="text" id="player2-period" placeholder="Es: 1977-1997">
+                    
+                    <label for="player2-role">Ruolo (opzionale)</label>
+                    <select id="player2-role">
+                        <option value="">Seleziona ruolo</option>
+                        <option value="Portiere">Portiere</option>
+                        <option value="Difensore">Difensore</option>
+                        <option value="Centrocampista">Centrocampista</option>
+                        <option value="Attaccante">Attaccante</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="comparePlayers()">Avvia il confronto</button>
+
+            <div class="loading" id="loading-players">
+                <div class="spinner"></div>
+                <p>Analizzando le carriere dei giocatori...</p>
+            </div>
+
+            <div class="error" id="error-players"></div>
+
+            <div class="results" id="results-players">
+                <div class="results-header">
+                    <h2 id="results-players-title"></h2>
+                </div>
+                <div class="results-content" id="results-players-content"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Presidential Dialogue -->
+        <div id="tab-presidents" class="tab-content">
+            <div class="input-section one-column">
+                <div class="input-box">
+                    <h3>Seleziona i due presidenti</h3>
+                    <label for="president1">Primo presidente</label>
+                    <select id="president1">
+                        <option value="">Seleziona presidente</option>
+                        <option value="Alfred Edwards">Alfred Edwards</option>
+                        <option value="Piero Pirelli">Piero Pirelli</option>
+                        <option value="Andrea Rizzoli">Andrea Rizzoli</option>
+                        <option value="Franco Carraro">Franco Carraro</option>
+                        <option value="Felice Colombo">Felice Colombo</option>
+                        <option value="Silvio Berlusconi">Silvio Berlusconi</option>
+                        <option value="Gerry Cardinale">Gerry Cardinale</option>
+                    </select>
+
+                    <label for="president2">Secondo presidente</label>
+                    <select id="president2">
+                        <option value="">Seleziona presidente</option>
+                        <option value="Alfred Edwards">Alfred Edwards</option>
+                        <option value="Piero Pirelli">Piero Pirelli</option>
+                        <option value="Andrea Rizzoli">Andrea Rizzoli</option>
+                        <option value="Franco Carraro">Franco Carraro</option>
+                        <option value="Felice Colombo">Felice Colombo</option>
+                        <option value="Silvio Berlusconi">Silvio Berlusconi</option>
+                        <option value="Gerry Cardinale">Gerry Cardinale</option>
+                    </select>
+
+                    <label for="dialogue-topic">Argomento del dialogo</label>
+                    <textarea id="dialogue-topic" placeholder="Es: Discutete della strategia migliore per vincere in Europa"></textarea>
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="startDialogue()">Avvia il dialogo</button>
+            <button class="action-btn secondary-btn" id="continue-dialogue-btn" style="display: none;" onclick="continueDialogue()">Continua il dialogo (altre 6 battute)</button>
+
+            <div class="loading" id="loading-presidents">
+                <div class="spinner"></div>
+                <p>Generando il dialogo tra i presidenti...</p>
+            </div>
+
+            <div class="error" id="error-presidents"></div>
+
+            <div class="results" id="results-presidents">
+                <div class="results-header">
+                    <h2 id="results-presidents-title"></h2>
+                </div>
+                <div class="results-content" id="results-presidents-content"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Team Battles -->
+        <div id="tab-teams" class="tab-content">
+            <div class="input-section two-columns">
+                <div class="input-box">
+                    <h3>Milan Legend</h3>
+                    <label for="milan-team">Scegli il Milan</label>
+                    <select id="milan-team">
+                        <option value="">Seleziona squadra</option>
+                        <option value="Milan di Kilpin (1901)">Milan di Kilpin (1901)</option>
+                        <option value="Milan di Nereo Rocco (1962/63)">Milan di Nereo Rocco (1962/63)</option>
+                        <option value="Milan di Nereo Rocco (1968/69)">Milan di Nereo Rocco (1968/69)</option>
+                        <option value="Milan di Liedholm (1978/79)">Milan di Liedholm (1978/79)</option>
+                        <option value="Milan di Sacchi (1988/89)">Milan di Sacchi (1988/89)</option>
+                        <option value="Milan di Sacchi (1989/90)">Milan di Sacchi (1989/90)</option>
+                        <option value="Milan di Capello (1993/94)">Milan di Capello (1993/94)</option>
+                        <option value="Milan di Ancelotti (2002/03)">Milan di Ancelotti (2002/03)</option>
+                        <option value="Milan di Ancelotti (2004/05)">Milan di Ancelotti (2004/05)</option>
+                        <option value="Milan di Ancelotti (2006/07)">Milan di Ancelotti (2006/07)</option>
+                        <option value="Milan di Allegri (2010/11)">Milan di Allegri (2010/11)</option>
+                        <option value="Milan di Pioli (2021/22)">Milan di Pioli (2021/22)</option>
+                    </select>
+                </div>
+
+                <div class="input-box">
+                    <h3>Squadra avversaria</h3>
+                    <label for="opponent-team">Nome squadra e anno</label>
+                    <input type="text" id="opponent-team" placeholder="Es: Inter 1970/71 oppure Real Madrid 2016/17">
+                    
+                    <label for="opponent-info">Info aggiuntive (opzionale)</label>
+                    <textarea id="opponent-info" placeholder="Es: Allenatore, giocatori chiave, titoli vinti..."></textarea>
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="battleTeams()">Avvia lo scontro</button>
+
+            <div class="loading" id="loading-teams">
+                <div class="spinner"></div>
+                <p>Analizzando le squadre...</p>
+            </div>
+
+            <div class="error" id="error-teams"></div>
+
+            <div class="results" id="results-teams">
+                <div class="results-header">
+                    <h2 id="results-teams-title"></h2>
+                </div>
+                <div class="results-content" id="results-teams-content"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Tutti i diritti riservati © <a href="https://feliceraimondo.substack.com" target="_blank">RedBlack Insights</a></p>
+            <p>Questa Web App è di proprietà del suo autore, l'avvocato Felice Raimondo.</p>
+        </div>
+    </div>
+
+    <script>
+const a0_0x3ccbfb=a0_0x2bf0;(function(_0x1da555,_0x58f7b3){const _0x5fc843=a0_0x2bf0,_0x20c3b6=_0x1da555();while(!![]){try{const _0x1cce52=-parseInt(_0x5fc843(0x1e0))/0x1*(-parseInt(_0x5fc843(0x204))/0x2)+-parseInt(_0x5fc843(0x227))/0x3*(-parseInt(_0x5fc843(0x228))/0x4)+parseInt(_0x5fc843(0x21d))/0x5+parseInt(_0x5fc843(0x1f7))/0x6*(-parseInt(_0x5fc843(0x210))/0x7)+parseInt(_0x5fc843(0x21a))/0x8*(-parseInt(_0x5fc843(0x20a))/0x9)+parseInt(_0x5fc843(0x224))/0xa+-parseInt(_0x5fc843(0x1df))/0xb;if(_0x1cce52===_0x58f7b3)break;else _0x20c3b6['push'](_0x20c3b6['shift']());}catch(_0x16fcef){_0x20c3b6['push'](_0x20c3b6['shift']());}}}(a0_0x5b0e,0x2ef8f));let dialogueTurns=0x0,currentPresident1='',currentPresident2='',currentTopic='',dialogueHistory='';function switchTab(_0x49010d){const _0x1bc26e=a0_0x2bf0;document[_0x1bc26e(0x225)](_0x1bc26e(0x203))[_0x1bc26e(0x1fa)](_0x115b1f=>{const _0x113305=_0x1bc26e;_0x115b1f['classList'][_0x113305(0x229)](_0x113305(0x1f2));}),document[_0x1bc26e(0x225)]('.tab')[_0x1bc26e(0x1fa)](_0x2ad96d=>{const _0x36273d=_0x1bc26e;_0x2ad96d[_0x36273d(0x20f)]['remove'](_0x36273d(0x1f2));}),document[_0x1bc26e(0x216)]('tab-'+_0x49010d)[_0x1bc26e(0x20f)][_0x1bc26e(0x1f0)](_0x1bc26e(0x1f2)),event['target'][_0x1bc26e(0x20f)]['add']('active'),document[_0x1bc26e(0x225)]('.results')['forEach'](_0x2389b5=>{const _0x4ad102=_0x1bc26e;_0x2389b5[_0x4ad102(0x20f)][_0x4ad102(0x229)](_0x4ad102(0x1f2));});}async function comparePlayers(){const _0x119c3e=a0_0x2bf0,_0x4430e9=document[_0x119c3e(0x216)](_0x119c3e(0x200))['value']['trim'](),_0x4f93e0=document[_0x119c3e(0x216)](_0x119c3e(0x1fd))[_0x119c3e(0x212)][_0x119c3e(0x1e7)](),_0x454cfd=document['getElementById'](_0x119c3e(0x1f4))[_0x119c3e(0x212)],_0x475aef=document[_0x119c3e(0x216)](_0x119c3e(0x223))[_0x119c3e(0x212)][_0x119c3e(0x1e7)](),_0x172467=document['getElementById'](_0x119c3e(0x220))[_0x119c3e(0x212)][_0x119c3e(0x1e7)](),_0x114a36=document[_0x119c3e(0x216)](_0x119c3e(0x21c))['value'];if(!_0x4430e9||!_0x475aef){showError(_0x119c3e(0x221),_0x119c3e(0x1e2));return;}showLoading(_0x119c3e(0x221),!![]),hideError(_0x119c3e(0x221)),hideResults(_0x119c3e(0x221));try{const _0x1a9393=await fetch(_0x119c3e(0x208),{'method':_0x119c3e(0x20c),'headers':{'Content-Type':'application/json'},'body':JSON[_0x119c3e(0x205)]({'player1':{'name':_0x4430e9,'period':_0x4f93e0,'role':_0x454cfd},'player2':{'name':_0x475aef,'period':_0x172467,'role':_0x114a36}})});if(!_0x1a9393['ok'])throw new Error(_0x119c3e(0x201)+_0x1a9393[_0x119c3e(0x1ed)]);const _0x4d5fc2=await _0x1a9393['json']();document[_0x119c3e(0x216)](_0x119c3e(0x219))['textContent']=_0x4430e9+'\x20vs\x20'+_0x475aef,document['getElementById']('results-players-content')[_0x119c3e(0x1eb)]=_0x4d5fc2[_0x119c3e(0x211)],showResults(_0x119c3e(0x221));}catch(_0x51af1b){console[_0x119c3e(0x218)](_0x119c3e(0x1e5),_0x51af1b),showError('players',_0x119c3e(0x1e3));}finally{showLoading(_0x119c3e(0x221),![]);}}function a0_0x2bf0(_0x26b7c5,_0x5a8357){_0x26b7c5=_0x26b7c5-0x1df;const _0x5b0e05=a0_0x5b0e();let _0x2bf0ca=_0x5b0e05[_0x26b7c5];if(a0_0x2bf0['UGgGwX']===undefined){var _0x409931=function(_0x226ce0){const _0x3563a6='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x49010d='',_0x115b1f='';for(let _0x2ad96d=0x0,_0x2389b5,_0x4430e9,_0x4f93e0=0x0;_0x4430e9=_0x226ce0['charAt'](_0x4f93e0++);~_0x4430e9&&(_0x2389b5=_0x2ad96d%0x4?_0x2389b5*0x40+_0x4430e9:_0x4430e9,_0x2ad96d++%0x4)?_0x49010d+=String['fromCharCode'](0xff&_0x2389b5>>(-0x2*_0x2ad96d&0x6)):0x0){_0x4430e9=_0x3563a6['indexOf'](_0x4430e9);}for(let _0x454cfd=0x0,_0x475aef=_0x49010d['length'];_0x454cfd<_0x475aef;_0x454cfd++){_0x115b1f+='%'+('00'+_0x49010d['charCodeAt'](_0x454cfd)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0x115b1f);};a0_0x2bf0['tejEni']=_0x409931,a0_0x2bf0['gjLXcr']={},a0_0x2bf0['UGgGwX']=!![];}const _0x1eef84=_0x5b0e05[0x0],_0x57b9c9=_0x26b7c5+_0x1eef84,_0x41940d=a0_0x2bf0['gjLXcr'][_0x57b9c9];return!_0x41940d?(_0x2bf0ca=a0_0x2bf0['tejEni'](_0x2bf0ca),a0_0x2bf0['gjLXcr'][_0x57b9c9]=_0x2bf0ca):_0x2bf0ca=_0x41940d,_0x2bf0ca;}async function startDialogue(){const _0x1787c7=a0_0x2bf0;currentPresident1=document[_0x1787c7(0x216)](_0x1787c7(0x207))[_0x1787c7(0x212)],currentPresident2=document[_0x1787c7(0x216)](_0x1787c7(0x222))[_0x1787c7(0x212)],currentTopic=document['getElementById']('dialogue-topic')[_0x1787c7(0x212)][_0x1787c7(0x1e7)]();if(!currentPresident1||!currentPresident2||!currentTopic){showError('presidents','Per\x20favore,\x20seleziona\x20entrambi\x20i\x20presidenti\x20e\x20inserisci\x20un\x20argomento.');return;}if(currentPresident1===currentPresident2){showError(_0x1787c7(0x1fe),'Devi\x20selezionare\x20due\x20presidenti\x20diversi.');return;}dialogueTurns=0x0,dialogueHistory='',await generateDialogue();}async function continueDialogue(){const _0x394d6d=a0_0x2bf0;if(dialogueTurns>=0x2){showError(_0x394d6d(0x1fe),_0x394d6d(0x1e8));return;}await generateDialogue(!![]);}async function generateDialogue(_0x5ead6b=![]){const _0x4039a8=a0_0x2bf0;showLoading(_0x4039a8(0x1fe),!![]),hideError(_0x4039a8(0x1fe));if(!_0x5ead6b)hideResults('presidents');try{const _0x339ba4=await fetch(_0x4039a8(0x1fb),{'method':_0x4039a8(0x20c),'headers':{'Content-Type':_0x4039a8(0x214)},'body':JSON[_0x4039a8(0x205)]({'president1':currentPresident1,'president2':currentPresident2,'topic':currentTopic,'history':dialogueHistory,'isContinuation':_0x5ead6b})});if(!_0x339ba4['ok'])throw new Error(_0x4039a8(0x201)+_0x339ba4[_0x4039a8(0x1ed)]);const _0xb1e105=await _0x339ba4[_0x4039a8(0x1f8)]();dialogueHistory+='\x0a'+_0xb1e105['dialogue'],dialogueTurns++,document[_0x4039a8(0x216)](_0x4039a8(0x20e))[_0x4039a8(0x1e4)]=_0x4039a8(0x202)+currentPresident1+_0x4039a8(0x1ea)+currentPresident2,_0x5ead6b?document['getElementById']('results-presidents-content')['innerHTML']+=_0xb1e105['dialogue']:document[_0x4039a8(0x216)](_0x4039a8(0x1f5))[_0x4039a8(0x1eb)]=_0xb1e105[_0x4039a8(0x1ef)],showResults(_0x4039a8(0x1fe)),dialogueTurns<0x2?document[_0x4039a8(0x216)](_0x4039a8(0x20d))[_0x4039a8(0x206)]['display']=_0x4039a8(0x1ec):document[_0x4039a8(0x216)](_0x4039a8(0x20d))[_0x4039a8(0x206)][_0x4039a8(0x217)]=_0x4039a8(0x209);}catch(_0x8a482c){console[_0x4039a8(0x218)]('Errore:',_0x8a482c),showError(_0x4039a8(0x1fe),_0x4039a8(0x22a));}finally{showLoading('presidents',![]);}}function a0_0x5b0e(){const _0x35d8ee=['mJrhyu9gvuy','C3rYAw5NAwz5','C3r5Bgu','ChjLC2LKzw50mq','lY5UzxrSAwz5l2z1BMn0Aw9UCY9JB21WyxjLlxbSyxLLCNm','BM9Uzq','mtHoC1fcA2u','C2HVD0vYCM9Y','ue9tva','y29UDgLUDwuTzgLHBg9NDwuTyNrU','CMvZDwX0CY1WCMvZAwrLBNrZlxrPDgXL','y2XHC3nmAxn0','n1HtDLnUta','y29TCgfYAxnVBG','DMfSDwu','lY5UzxrSAwz5l2z1BMn0Aw9UCY90zwfTlwjHDhrSzq','yxbWBgLJyxrPB24VANnVBG','BwLSyw4TDgvHBq','z2v0rwXLBwvUDej5swq','zgLZCgXHEq','zxjYB3i','CMvZDwX0CY1WBgf5zxjZlxrPDgXL','mteZmZyYnhLkD3z2qW','ugvYigzHDM9YzsWGC2vSzxPPB25HigLSie1PBgfUiguGAw5ZzxjPC2nPigXHihnXDwfKCMeGyxz2zxjZyxjPys4','CgXHEwvYmI1YB2XL','otK5nZCWy1HnCefm','y29TCgfYzvbSyxLLCNm','CMvZDwX0CY0','CgXHEwvYmI1WzxjPB2q','CgXHEwvYCW','ChjLC2LKzw50mG','CgXHEwvYmI1Uyw1L','mJm0mJeYmeXszLzpza','CxvLCNLtzwXLy3rVCKfSBa','z2vUzxjHDgveAwfSB2D1zq','otC2nZrOy1PAvfm','mtjytfnWC28','CMvTB3zL','u2KGW6GGDMvYAwzPy2f0BYb1BIbLCNjVCMuGzhvYyw50zsbSysbNzw5LCMf6Aw9UzsbKzwWGzgLHBg9NBY4','mJm4ndiZovHlugnkDa','mty2mZbzuNPcAg8','yMf0DgXLvgvHBxm','ugvYigzHDM9YzsWGAw5ZzxjPC2nPigKGBM9TAsbKAsbLBNrYyw1IAsbPigDPB2nHDg9YAs4','u2KGW6GGDMvYAwzPy2f0BYb1BIbLCNjVCMuGzhvYyw50zsbSj2fUywXPC2KUifjPChjVDMeGCgNdUsb0yxjKAs4','Dgv4DenVBNrLBNq','rxjYB3jLoG','CMvZDwX0CY10zwfTCY1JB250zw50','DhjPBq','sgfPihjHz2DPDw50BYbPBcbSAw1PDguGBwfZC2LTBYbKAsaXmIbIyxr0DxrLihrVDgfSAs4','y29UDgLUDwveAwfSB2D1zq','ihzZia','Aw5Uzxjive1m','yMXVy2S','C3rHDhvZ','yMf0DgXL','zgLHBg9NDwu','ywrK','zxjYB3iT','ywn0AxzL','C3rHCNreAwfSB2D1zq','CgXHEwvYms1YB2XL','CMvZDwX0CY1WCMvZAwrLBNrZlwnVBNrLBNq','C2HVD0XVywrPBMC','mJmZmdC2Bgnez29o','ANnVBG','Bg9HzgLUzY0','zM9YrwfJAa','lY5UzxrSAwz5l2z1BMn0Aw9UCY9WCMvZAwrLBNrPywWTzgLHBg9NDwu','C2HVD1jLC3vSDhm','CgXHEwvYms1WzxjPB2q','ChjLC2LKzw50CW','DgvHBxm','CgXHEwvYms1Uyw1L','rxjYB3jLoIa','rgLHBg9NBZOG','lNrHyI1JB250zw50'];a0_0x5b0e=function(){return _0x35d8ee;};return a0_0x5b0e();}async function battleTeams(){const _0x404446=a0_0x2bf0,_0xbc9397=document['getElementById'](_0x404446(0x215))[_0x404446(0x212)],_0x17d230=document[_0x404446(0x216)]('opponent-team')[_0x404446(0x212)][_0x404446(0x1e7)](),_0x2e0091=document[_0x404446(0x216)]('opponent-info')[_0x404446(0x212)][_0x404446(0x1e7)]();if(!_0xbc9397||!_0x17d230){showError('teams',_0x404446(0x21b));return;}showLoading(_0x404446(0x1ff),!![]),hideError('teams'),hideResults(_0x404446(0x1ff));try{const _0x1d5400=await fetch(_0x404446(0x213),{'method':_0x404446(0x20c),'headers':{'Content-Type':'application/json'},'body':JSON['stringify']({'milanTeam':_0xbc9397,'opponentTeam':_0x17d230,'opponentInfo':_0x2e0091})});if(!_0x1d5400['ok'])throw new Error(_0x404446(0x201)+_0x1d5400[_0x404446(0x1ed)]);const _0x1997f5=await _0x1d5400[_0x404446(0x1f8)]();document[_0x404446(0x216)]('results-teams-title')[_0x404446(0x1e4)]=_0xbc9397+_0x404446(0x1ea)+_0x17d230,document[_0x404446(0x216)](_0x404446(0x1e6))[_0x404446(0x1eb)]=_0x1997f5[_0x404446(0x1ee)],showResults(_0x404446(0x1ff));}catch(_0xb2408b){console[_0x404446(0x218)](_0x404446(0x1e5),_0xb2408b),showError(_0x404446(0x1ff),'Si\x20è\x20verificato\x20un\x20errore\x20durante\x20l\x27analisi\x20dello\x20scontro.');}finally{showLoading(_0x404446(0x1ff),![]);}}function showLoading(_0x1c2e8d,_0x1fc79a){const _0x22dbf5=a0_0x2bf0,_0x171009=document[_0x22dbf5(0x216)](_0x22dbf5(0x1f9)+_0x1c2e8d);if(_0x1fc79a)_0x171009['classList'][_0x22dbf5(0x1f0)](_0x22dbf5(0x1f2));else _0x171009[_0x22dbf5(0x20f)][_0x22dbf5(0x229)](_0x22dbf5(0x1f2));}function showResults(_0x3df2f1){const _0x2f7d90=a0_0x2bf0;document['getElementById'](_0x2f7d90(0x21f)+_0x3df2f1)[_0x2f7d90(0x20f)][_0x2f7d90(0x1f0)](_0x2f7d90(0x1f2));}function hideResults(_0x20df38){const _0x44d378=a0_0x2bf0;document[_0x44d378(0x216)](_0x44d378(0x21f)+_0x20df38)[_0x44d378(0x20f)][_0x44d378(0x229)](_0x44d378(0x1f2));}function showError(_0x30b7a6,_0x2c8db6){const _0x5154c4=a0_0x2bf0,_0x4664f7=document['getElementById'](_0x5154c4(0x1f1)+_0x30b7a6);_0x4664f7[_0x5154c4(0x1e4)]=_0x2c8db6,_0x4664f7[_0x5154c4(0x20f)][_0x5154c4(0x1f0)](_0x5154c4(0x1f2));}function hideError(_0x36d38c){const _0x29720c=a0_0x2bf0;document[_0x29720c(0x216)](_0x29720c(0x1f1)+_0x36d38c)[_0x29720c(0x20f)][_0x29720c(0x229)](_0x29720c(0x1f2));}window['initApp']=function(){},window['switchTab']=switchTab,window[a0_0x3ccbfb(0x1e1)]=battleTeams,window[a0_0x3ccbfb(0x21e)]=comparePlayers,window[a0_0x3ccbfb(0x1e9)]=continueDialogue,window[a0_0x3ccbfb(0x1fc)]=showResults,window[a0_0x3ccbfb(0x1f6)]=showLoading,window[a0_0x3ccbfb(0x20b)]=showError,window['hideError']=hideError,window[a0_0x3ccbfb(0x226)]=generateDialogue,window['hideResults']=hideResults,window[a0_0x3ccbfb(0x1f3)]=startDialogue;
+</script>
+
+    </div>
+
+    <!-- Script di Clerk per la protezione degli accessi -->
+    <script>
+        // La tua Publishable Key
+        const clerkPubKey = "pk_test_cnVsaW5nLW1heWZseS03MS5jbGVyay5hY2NvdW50cy5kZXYk";
+
+        const script = document.createElement('script');
+        script.setAttribute('data-clerk-publishable-key', clerkPubKey);
+        script.async = true;
+        script.src = "https://ruling-mayfly-71.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
+        script.crossOrigin = "anonymous";
+        
+        script.addEventListener('error', function () {
+            console.error("Impossibile caricare il file JS di Clerk da CDN (es. bloccato da AdBlocker, estensioni di privacy o problemi di rete).");
+        });
+
+        script.addEventListener('load', async function () {
+            try {
+                const localizationObj = {
+                    signIn: {
+                        start: {
+                            title: "Area Riservata",
+                            subtitle: "Inserisci l'email associata al tuo abbonamento a RedBlack Insights.",
+                            actionText: " ",
+                            actionLink: " "
+                        },
+                        emailCode: {
+                            title: "Controlla la tua email",
+                            subtitle: "Abbiamo inviato un codice di verifica a",
+                            formTitle: "Codice di verifica",
+                            resendButton: "Invia di nuovo il codice"
+                        }
+                    },
+                    formFieldLabel__emailAddress: "Indirizzo Email",
+                    formFieldLabel__emailAddress_code: "Codice a 6 cifre",
+                    formButtonPrimary: "Continua",
+                    formFieldInputPlaceholder__emailAddress: "es. nome.cognome@email.com",
+                    dividerText: "oppure"
+                };
+
+                // Inizializzazione di Clerk con la localizzazione globale e i redirect globali
+                await window.Clerk.load({
+                    localization: localizationObj,
+                    signInForceRedirectUrl: window.location.href,
+                    signUpForceRedirectUrl: window.location.href
+                });
+
+                // Listener per intercettare il login in tempo reale senza dover aspettare il reload
+                window.Clerk.addListener(function (state) {
+                    if (state.user) {
+                        document.getElementById('sign-in-container').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+
+                        // Inizializza l'app ora che il contenitore è visibile!
+                        if (typeof window.initApp === 'function') {
+                            window.initApp();
+                        }
+                    }
+                });
+
+                if (window.Clerk.user) {
+                    // L'utente è autorizzato: nascondo il login e mostro il contenuto della web app
+                    document.getElementById('sign-in-container').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
+
+                    // Inizializza l'app ora che il contenitore è visibile!
+                    if (typeof window.initApp === 'function') {
+                        window.initApp();
+                    }
+                } else {
+                    // L'utente NON è autorizzato: mostro il modulo di login nel div apposito
+                    const signInDiv = document.getElementById('sign-in-container');
+                    window.Clerk.mountSignIn(signInDiv, {
+                        forceRedirectUrl: window.location.href,
+                        fallbackRedirectUrl: window.location.href,
+                        afterSignInUrl: window.location.href,
+                        afterSignUpUrl: window.location.href,
+                        localization: localizationObj
+                    });
+                }
+            } catch (err) {
+                console.error("Errore durante l'inizializzazione di Clerk: " + (err ? (err.message || err.stack || JSON.stringify(err) || String(err)) : "Errore sconosciuto"), err);
+            }
+        });
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>
